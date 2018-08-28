@@ -570,8 +570,8 @@ namespace pandafun
         if (pandaitr->type == normal_type)
         {
             // (NP - N7) / (50 * (NP - N7)) + 0.06
-            // up:   range * [(NP - N7) / (300 * (NP - N7)) + 0.009]
-            // same: range * [(NP - N7) / (50 * (NP - N7)) + 0.05]
+            // up:   range * [(NP - N7) / (300 * (NP - N7)) + 0.014]
+            // same: range * [(NP - N7) / (50 * (NP - N7)) + 0.04]
             // 45000 / 300 = 150
             // 45000 / 50 = 900
             pup = (int)(150. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 630;
@@ -591,8 +591,8 @@ namespace pandafun
         }
         else if (pandaitr->type == copper_type)
         {
-            // up:   range * [(NP - N7) / (300 * (NP - N7)) + 0.009]
-            // same: range * [(NP - N7) / (50 * (NP - N7)) + 0.05]
+            // up:   range * [(NP - N7) / (300 * (NP - N7)) + 0.011]
+            // same: range * [(NP - N7) / (50 * (NP - N7)) + 0.037]
             pup = (int)(150. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 495;
             psame = (int)(900. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 1665 + pup;
             if (probability >= psame)
@@ -618,8 +618,8 @@ namespace pandafun
         }
         else if (pandaitr->type == silver_type)
         {
-            // up:   range * [(NP - N7) / (450 * (NP - N7)) + 0.006]
-            // same: range * [(NP - N7) / (75 * (NP - N7)) + 0.035]
+            // up:   range * [(NP - N7) / (450 * (NP - N7)) + 0.0067]
+            // same: range * [(NP - N7) / (75 * (NP - N7)) + 0.023]
             pup = (int)(100. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 301;
             psame = (int)(600. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 1035 + pup;
             if (probability >= psame)
@@ -640,13 +640,21 @@ namespace pandafun
             }
             else
             {
-                newtype = silver_type;
+                if (cfgitr->silver < SILVERMAX)
+                {
+                    newtype = silver_type;
+                }
+                else
+                {
+                    success = 0;
+                    print("sorry, silver panda has reached the limit.\n");
+                }
             }
         }
         else if (pandaitr->type == gold_type)
         {
             // up:   range * [(NP - N7) / (750 * (NP - N7)) + 0.0027]
-            // same: range * [(NP - N7) / (125 * (NP - N7)) + 0.015]
+            // same: range * [(NP - N7) / (125 * (NP - N7)) + 0.013]
             pup = (int)(60. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 121;
             psame = (int)(360. * (allplayers - candles7days) / (allplayers + candles7days) + 0.5) + 585 + pup;
             if (probability >= psame)
@@ -667,7 +675,15 @@ namespace pandafun
             }
             else
             {
-                newtype = gold_type;
+                if (cfgitr->gold < GOLDENMAX)
+                {
+                    newtype = gold_type;
+                }
+                else
+                {
+                    success = 0;
+                    print("sorry, gold panda has reached the limit.\n");
+                }
             }
         }
         else
@@ -1120,7 +1136,7 @@ namespace pandafun
         eosio_assert(hashcheck(submit_hash, transform_msg.randomvalue) == 0, "transform(): player's random number's sha256 sum doesn't match the submitted one.\n");
         eosio_assert(hashcheck(server_hash, transform_msg.srvrandom) == 0, "transform(): server's random number's sha256 sum doesn't match the submitted one.\n");
 
-        const int32_t range = 600 * SKILLS; // 2 / 3 / skills, such as 2/69
+        const int32_t range = 600 * SKILLS;
         auto result = transform_msg.randomvalue ^ transform_msg.srvrandom;
         auto probability = result % range;
 
@@ -1186,7 +1202,7 @@ namespace pandafun
         int32_t newskillpos = -1;
         int32_t success = 1;
         // 2 sections, enlarge by 6900: [0~4600]
-        //   2 / 3 / 23
+        //   1 / 3 / 23
         // 1. transform probability, such as [0-1000)
         // 2. fail probability, the left
         auto ptransform = range * 1 / 3;
@@ -1203,7 +1219,6 @@ namespace pandafun
         }
 
 
-        // confirmtrans() cleans the table
         char newskill = 0;
         transform_type transformrec(code_account, transform_msg.player);
         auto transformitr = transformrec.find(0);
